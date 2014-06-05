@@ -6,36 +6,46 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
 func main() {
 	arguments := os.Args[1:]
 
-	// Attempt to open the file or directory
-	file, err := os.Open(os.Args[1])
-	if err != nil {
-		// err is of type *PathError
-		fmt.Println(err)
+	if len(arguments) != 1 {
+		usage()
 		return
 	}
-	// Ensures the file will be closed
-	defer file.Close()
 
-	fileInfo, err := file.Stat()
+	// Try and get FileInfo
+	fileInfo, err := os.Stat(arguments[0])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 	if fileInfo.IsDir() {
 		// handle files in directory
-	} else {
-		fmt.Printf("Reading file: %s\n", fileInfo.Name())
-		contents := make([]byte, fileInfo.Size())
-		read, err := file.Read(contents)
+		files, err := ioutil.ReadDir(fileInfo.Name())
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
-		fmt.Println(contents)
+		for _, fInfo := range files {
+			fmt.Printf("Directory %s contains: %s\n", fileInfo.Name(), fInfo.Name())
+		}
+	} else {
+		fmt.Printf("Reading file: %s\n", fileInfo.Name())
+		contents, err := ioutil.ReadFile(fileInfo.Name())
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Printf("File %s contains: %s\n", fileInfo.Name(), contents)
 	}
+}
+
+func usage() {
+	fmt.Println("Usage: go run start.go [path]")
 }

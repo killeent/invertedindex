@@ -5,12 +5,19 @@ files in the directory into memory.
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 )
 
 func main() {
+	// recursiveFlag := flag.Bool("recursive", false, "Read files from a directory recursively")
+	// flag.Parse()
+	// if *recursiveFlag {
+	// 	fmt.Println("Working recursively")
+	// }
+
 	arguments := os.Args[1:]
 
 	if len(arguments) != 1 {

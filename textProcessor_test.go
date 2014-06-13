@@ -1,14 +1,32 @@
 package invertedindex
 
 import (
-	"io/ioutil"
+	// "fmt"
 	"testing"
 )
 
 func TestEmptyFile(t *testing.T) {
-	contents, _ := ioutil.ReadFile("test_files/empty.txt")
-	tokens := ExtractTerms(contents)
+	bytes := make([]byte, 0)
+	tokens := ExtractTerms(bytes)
 	if len(tokens) != 0 {
-		t.Errorf("Empty file tokenized improperly. Expected: %d tokens; Actual: %d tokens", 0, len(tokens))
+		t.Error("Empty byte slice should return no tokens")
+	}
+}
+
+// Tokenization Tests
+
+func TestWhiteSpace(t *testing.T) {
+	bytes := []byte(" ")
+	tokens := ExtractTerms(bytes)
+	if len(tokens) != 0 {
+		t.Error("Whitespace only byte slice should return no tokens")
+	}
+}
+
+func TestSingleTerm(t *testing.T) {
+	bytes := []byte("hi")
+	tokens := ExtractTerms(bytes)
+	if len(tokens) != 1 {
+		t.Error("Single term byte slice should return a single token")
 	}
 }

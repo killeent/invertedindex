@@ -1,9 +1,9 @@
 package invertedindex
 
 import (
-"os"
-"fmt"
-"io/ioutil"
+	"fmt"
+	"io/ioutil"
+	"os"
 )
 
 func BuildIndex(fileInfo os.FileInfo) {
@@ -22,7 +22,7 @@ func readDirectory(fileInfo os.FileInfo) {
 	}
 	for _, subFileInfo := range files {
 		if subFileInfo.IsDir() {
-			if recursive {
+			if true {
 				readDirectory(subFileInfo)
 			}
 		} else {

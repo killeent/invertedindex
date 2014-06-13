@@ -8,13 +8,20 @@ a text file into a list of terms used in the Inverted Index.
 package invertedindex
 
 import (
-	"strings"
+	"bytes"
+	// "fmt"
+	// "strings"
 )
 
 // ExtractTerms takes a byte slice of a text file and parses it into
-// a list of terms. To do so it performs tokenization.
-func ExtractTerms(file []byte) []string {
-	str := string(file)
-	tokens := strings.Split(str, "\\s+")
-	return tokens
+// a slice of term slices. To do so it performs tokenization.
+func ExtractTerms(file []byte) [][]byte {
+	return tokenize(file)
+}
+
+// tokenize tokenizes a byte slice of text by whitespace and returns
+// a slice of slice tokens of terms in the text. If the byte slice is
+// empty or is only whitespace, returns an empty slice
+func tokenize(file []byte) [][]byte {
+	return bytes.Fields(file)
 }

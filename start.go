@@ -12,21 +12,23 @@ import (
 )
 
 func main() {
-	// recursiveFlag := flag.Bool("recursive", false, "Read files from a directory recursively")
-	// flag.Parse()
-	// if *recursiveFlag {
-	// 	fmt.Println("Working recursively")
-	// }
+	var recursive bool
+	var indexDir string
+	flag.BoolVar(&recursive, "r", false, "Index the directory contents recursively")
+	flag.Parse()
 
-	arguments := os.Args[1:]
-
-	if len(arguments) != 1 {
+	if len(flag.Args()) != 1 {
 		usage()
-		return
+		os.Exit(1)
+	}
+	indexDir = flag.Args()[0]
+
+	if recursive {
+		fmt.Println("Reading the directory recursively")
 	}
 
-	// Try and get FileInfo
-	fileInfo, err := os.Stat(arguments[0])
+	// Try and get FileInfo for the passed directory string
+	fileInfo, err := os.Stat(indexDir)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -37,7 +39,7 @@ func main() {
 		files, err := ioutil.ReadDir(fileInfo.Name())
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 		for _, fInfo := range files {
 			fmt.Printf("Directory %s contains: %s\n", fileInfo.Name(), fInfo.Name())
@@ -47,12 +49,12 @@ func main() {
 		contents, err := ioutil.ReadFile(fileInfo.Name())
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 		fmt.Printf("File %s contains: %s\n", fileInfo.Name(), contents)
 	}
 }
 
 func usage() {
-	fmt.Println("Usage: go run start.go [path]")
+	fmt.Println("Usage: ./start [flags] [directory path]")
 }

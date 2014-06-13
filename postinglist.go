@@ -1,8 +1,7 @@
-package main
+package invertedindex
 
 import (
 	"container/list"
-	"fmt"
 )
 
 type posting struct {
@@ -87,62 +86,62 @@ func positionalIntersect(p1, p2 list.List, k int) *list.List {
 	return result
 }
 
-func main() {
-	// create two posting lists; we ignore their contents for now
-	p1 := list.New()
-	p2 := list.New()
-	p1.PushBack(posting{docID: 1, positions: nil})
-	p1.PushBack(posting{docID: 3, positions: nil})
-	p1.PushBack(posting{docID: 5, positions: nil})
-	p2.PushBack(posting{docID: 2, positions: nil})
-	p2.PushBack(posting{docID: 3, positions: nil})
-	p2.PushBack(posting{docID: 4, positions: nil})
-	p2.PushBack(posting{docID: 7, positions: nil})
+// func main() {
+// 	// create two posting lists; we ignore their contents for now
+// 	p1 := list.New()
+// 	p2 := list.New()
+// 	p1.PushBack(posting{docID: 1, positions: nil})
+// 	p1.PushBack(posting{docID: 3, positions: nil})
+// 	p1.PushBack(posting{docID: 5, positions: nil})
+// 	p2.PushBack(posting{docID: 2, positions: nil})
+// 	p2.PushBack(posting{docID: 3, positions: nil})
+// 	p2.PushBack(posting{docID: 4, positions: nil})
+// 	p2.PushBack(posting{docID: 7, positions: nil})
 
-	intersection := intersectPostingList(*p1, *p2)
-	for e := intersection.Front(); e != nil; e = e.Next() {
-		fmt.Println(e.Value)
-	}
+// 	intersection := intersectPostingList(*p1, *p2)
+// 	for e := intersection.Front(); e != nil; e = e.Next() {
+// 		fmt.Println(e.Value)
+// 	}
 
-	// now we will concern ourselves with contents
-	p1.Init()
-	p2.Init()
-	post1 := list.New()
-	post1.PushBack(1)
-	post1.PushBack(3)
-	post1.PushBack(6)
-	post1.PushBack(10)
-	post2 := list.New()
-	post2.PushBack(2)
-	post2.PushBack(5)
-	post2.PushBack(8)
-	post2.PushBack(15)
-	p1.PushBack(posting{docID: 1, positions: post1})
-	p2.PushBack(posting{docID: 1, positions: post2})
+// 	// now we will concern ourselves with contents
+// 	p1.Init()
+// 	p2.Init()
+// 	post1 := list.New()
+// 	post1.PushBack(1)
+// 	post1.PushBack(3)
+// 	post1.PushBack(6)
+// 	post1.PushBack(10)
+// 	post2 := list.New()
+// 	post2.PushBack(2)
+// 	post2.PushBack(5)
+// 	post2.PushBack(8)
+// 	post2.PushBack(15)
+// 	p1.PushBack(posting{docID: 1, positions: post1})
+// 	p2.PushBack(posting{docID: 1, positions: post2})
 
-	var positionalIntersection *list.List
+// 	var positionalIntersection *list.List
 
-	fmt.Println("First looking for adjacent words (k = 1)")
-	positionalIntersection = positionalIntersect(*p1, *p2, 1)
-	for e := positionalIntersection.Front(); e != nil; e = e.Next() {
-		result := e.Value.(positionalResult)
-		fmt.Printf("docID: %d, index of first word: %d, index of second word: %d\n",
-			result.docID, result.w1Pos, result.w2Pos)
-	}
+// 	fmt.Println("First looking for adjacent words (k = 1)")
+// 	positionalIntersection = positionalIntersect(*p1, *p2, 1)
+// 	for e := positionalIntersection.Front(); e != nil; e = e.Next() {
+// 		result := e.Value.(positionalResult)
+// 		fmt.Printf("docID: %d, index of first word: %d, index of second word: %d\n",
+// 			result.docID, result.w1Pos, result.w2Pos)
+// 	}
 
-	fmt.Println("Now looking for words within k = 2 positions")
-	positionalIntersection = positionalIntersect(*p1, *p2, 2)
-	for e := positionalIntersection.Front(); e != nil; e = e.Next() {
-		result := e.Value.(positionalResult)
-		fmt.Printf("docID: %d, index of first word: %d, index of second word: %d\n",
-			result.docID, result.w1Pos, result.w2Pos)
-	}
+// 	fmt.Println("Now looking for words within k = 2 positions")
+// 	positionalIntersection = positionalIntersect(*p1, *p2, 2)
+// 	for e := positionalIntersection.Front(); e != nil; e = e.Next() {
+// 		result := e.Value.(positionalResult)
+// 		fmt.Printf("docID: %d, index of first word: %d, index of second word: %d\n",
+// 			result.docID, result.w1Pos, result.w2Pos)
+// 	}
 
-	fmt.Println("Now looking for words within k = 5 positions")
-	positionalIntersection = positionalIntersect(*p1, *p2, 5)
-	for e := positionalIntersection.Front(); e != nil; e = e.Next() {
-		result := e.Value.(positionalResult)
-		fmt.Printf("docID: %d, index of first word: %d, index of second word: %d\n",
-			result.docID, result.w1Pos, result.w2Pos)
-	}
-}
+// 	fmt.Println("Now looking for words within k = 5 positions")
+// 	positionalIntersection = positionalIntersect(*p1, *p2, 5)
+// 	for e := positionalIntersection.Front(); e != nil; e = e.Next() {
+// 		result := e.Value.(positionalResult)
+// 		fmt.Printf("docID: %d, index of first word: %d, index of second word: %d\n",
+// 			result.docID, result.w1Pos, result.w2Pos)
+// 	}
+// }

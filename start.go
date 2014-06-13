@@ -40,8 +40,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	buildIndex(fileInfo)
+}
+
+func buildIndex(fileInfo os.FileInfo) {
 	if fileInfo.IsDir() {
-		// handle files in directory
 		readDirectory(fileInfo)
 	} else {
 		readFile(fileInfo)

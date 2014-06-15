@@ -9,19 +9,21 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/killeent/invertedindex"
 	"io/ioutil"
 	"os"
-	"github.com/killeent/invertedindex"
 )
 
-var recursive bool
-
 func main() {
+	// Components to be passed to our indexer
 	var indexDir string
+	var abort, recursive bool
+
+	flag.BoolVar(&abort, "a", false, "If a file or directory cannot be read during indexing"+
+		"terminate immediately")
 	flag.BoolVar(&recursive, "r", false, "Index the directory contents recursively")
-	// flag.BoolVar(&abort, "a", false, "If a file or directory cannot be read during indexing"+
-	//	"terminate immediately")
-	flag.Parse()
+	// flag.BoolVar(&verbose, "v", false, "Log information about the indexing process to to the console")
+	// flag.Parse()
 
 	if len(flag.Args()) != 1 {
 		usage()

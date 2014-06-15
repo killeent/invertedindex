@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-// Tokenization Tests
-
 // checks whether two 2-dimensional byte slices are equal
 func assertEqualTokenSlices(t *testing.T, a, e [][]byte) {
 	if len(a) != len(e) {
@@ -19,6 +17,8 @@ func assertEqualTokenSlices(t *testing.T, a, e [][]byte) {
 		}
 	}
 }
+
+// Tokenization Tests
 
 func TestEmptyFile(t *testing.T) {
 	bytes := make([]byte, 0)
@@ -62,4 +62,12 @@ func TestMultipleTermsWhiteSpace(t *testing.T) {
 	bytes := []byte(" hi there  \n")
 	expected := [][]byte{[]byte("hi"), []byte("there")}
 	assertEqualTokenSlices(t, tokenize(bytes), expected)
+}
+
+// Normalization Tests
+
+func TestAllLowerNoPunctuation(t *testing.T) {
+	tokens := [][]byte{[]byte("abc")}
+	expected := [][]byte{[]byte("abc")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
 }

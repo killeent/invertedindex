@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 type Indexer struct {
@@ -53,7 +54,8 @@ func (i *Indexer) readFile(fileInfo os.FileInfo) {
 	}
 	terms := ExtractTerms(contents)
 	docID := i.getNextDocID()
-	i.documents[docID] = fileInfo.Name()
+	// TODO: need to get absolute path for file in order to index it properly
+	i.documents[docID], err = filepath.Abs(fileInfo.Name())
 	for _, term := range terms {
 		termStr := string(term)
 		_, ok := i.index[termStr]

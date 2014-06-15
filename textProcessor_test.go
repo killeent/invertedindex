@@ -1,10 +1,16 @@
+/**
+Original Author: Trevor Killeen (2014)
+
+Test file for the textProcessor.
+*/
 package invertedindex
 
 import (
-	// "fmt"
 	"bytes"
 	"testing"
 )
+
+// TODO: refactor unit tests
 
 // checks whether two 2-dimensional byte slices are equal
 func assertEqualTokenSlices(t *testing.T, a, e [][]byte) {
@@ -69,5 +75,53 @@ func TestMultipleTermsWhiteSpace(t *testing.T) {
 func TestAllLowerNoPunctuation(t *testing.T) {
 	tokens := [][]byte{[]byte("abc")}
 	expected := [][]byte{[]byte("abc")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestAllUpper(t *testing.T) {
+	tokens := [][]byte{[]byte("ABC")}
+	expected := [][]byte{[]byte("abc")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemovePeriod(t *testing.T) {
+	tokens := [][]byte{[]byte("u.s.a.")}
+	expected := [][]byte{[]byte("usa")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemoveComma(t *testing.T) {
+	tokens := [][]byte{[]byte("u,s,a,")}
+	expected := [][]byte{[]byte("usa")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemoveExclamation(t *testing.T) {
+	tokens := [][]byte{[]byte("usa!")}
+	expected := [][]byte{[]byte("usa")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemoveQuestion(t *testing.T) {
+	tokens := [][]byte{[]byte("?usa")}
+	expected := [][]byte{[]byte("usa")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemoveApostrophe(t *testing.T) {
+	tokens := [][]byte{[]byte("usa's")}
+	expected := [][]byte{[]byte("usas")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemoveDash(t *testing.T) {
+	tokens := [][]byte{[]byte("s-i")}
+	expected := [][]byte{[]byte("si")}
+	assertEqualTokenSlices(t, normalize(tokens), expected)
+}
+
+func TestRemoveMultiplePunctuationUpperCase(t *testing.T) {
+	tokens := [][]byte{[]byte("UsA's-?")}
+	expected := [][]byte{[]byte("usas")}
 	assertEqualTokenSlices(t, normalize(tokens), expected)
 }

@@ -9,8 +9,7 @@ package invertedindex
 
 import (
 	"bytes"
-	// "fmt"
-	// "strings"
+	"regexp"
 )
 
 // ExtractTerms takes a byte slice of a text file and parses it into
@@ -30,9 +29,10 @@ func tokenize(file []byte) [][]byte {
 // normalize takes a byte slice of tokens and normalizes them by
 // removing punctuation and converting to lower case
 func normalize(tokens [][]byte) [][]byte {
+	punctuation := regexp.MustCompile(`[!?.,'-]`)
 	for i, token := range tokens {
 		tokens[i] = bytes.ToLower(token)
-		tokens[i] = bytes.Replace(tokens[i], []byte{'.'}, []byte{}, -1)
+		tokens[i] = punctuation.ReplaceAll(tokens[i], []byte{})
 	}
 	return tokens
 }

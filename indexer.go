@@ -19,9 +19,9 @@ func (i *Indexer) BuildIndex(fileInfo os.FileInfo) {
 	i.documents = make(map[int]string)
 
 	if fileInfo.IsDir() {
-		readDirectory(fileInfo)
+		i.readDirectory(fileInfo)
 	} else {
-		readFile(fileInfo)
+		i.readFile(fileInfo)
 	}
 }
 
@@ -35,10 +35,10 @@ func (i *Indexer) readDirectory(fileInfo os.FileInfo) {
 	for _, subFileInfo := range files {
 		if subFileInfo.IsDir() {
 			if i.recursive {
-				readDirectory(subFileInfo)
+				i.readDirectory(subFileInfo)
 			}
 		} else {
-			readFile(subFileInfo)
+			i.readFile(subFileInfo)
 		}
 	}
 }

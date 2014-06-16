@@ -1,8 +1,8 @@
 package invertedindex
 
 import (
-	// "fmt"
-	"os"
+	"fmt"
+	// "os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -24,7 +24,7 @@ func TestCrawlEmptyDirectory(t *testing.T) {
 	}
 }
 
-// test crawling a single file
+// tests crawling a single file
 func TestCrawlSingleFile(t *testing.T) {
 	indexer := setUpIndexer(t, filepath.Join(crawlpath, "single", "a.txt"))
 	actual := indexer.documents
@@ -32,27 +32,50 @@ func TestCrawlSingleFile(t *testing.T) {
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
+// tests crawling a flat directory
+func TestCrawlFlatDirectory(t *testing.T) {
+	indexer := setUpIndexer(t, filepath.Join(crawlpath, "flat"))
+	actual := indexer.documents
+	expected := map[int]string{0: filepath.Join(crawlpath, "flat", "a.txt"),
+		1: filepath.Join(crawlpath, "flat", "b.txt"),
+		2: filepath.Join(crawlpath, "flat", "c.txt")}
+	assertEqualDocumentMapping(t, actual, expected)
+}
+
+// tests crawling a nested directory without the recursive flag set
+func TestCrawlNestedDirectoryNonRecursive(t *testing.T) {
+	indexer := setUpIndexer(t, filepath.Join(crawlpath, "nested"))
+	actual := indexer.documents
+	expected := map[int]string{0: filepath.Join(crawlpath, "nested", "a.txt")}
+	assertEqualDocumentMapping(t, actual, expected)
+}
+
+// tests crawling a nested directory with the recursive flag set
+func TestCrawlNestedDirectoryRecursive(t *testing.T) {
+	// indexer := setUpIndexer(t, filepath.Join(crawlpath, "nested"))
+}
+
 func setUpIndexer(t *testing.T, filePath string) *Indexer {
 	indexer := new(Indexer)
-	fileInfo := getFileInfo(t, filePath)
-	indexer.BuildIndex(fileInfo)
+	// fileInfo := getFileInfo(t, filePath)
+	indexer.BuildIndex(filePath)
 	return indexer
 }
 
 // getFileInfo tries to get and return fileInfo struct for the passed file
 // path. If the file does not exists, this function raises an error on the
 // testing framework
-func getFileInfo(t *testing.T, path string) os.FileInfo {
-	path, err := filepath.Abs(path)
-	if err != nil {
-		t.Error(err)
-	}
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		t.Error(err)
-	}
-	return fileInfo
-}
+// func getFileInfo(t *testing.T, path string) os.FileInfo {
+// 	path, err := filepath.Abs(path)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	fileInfo, err := os.Stat(path)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	return fileInfo
+// }
 
 // assertEqualDocumentMapping tests that two documents maps (docID -> file path)
 // are equivalent, that is they store the same docIDs and same file paths. They
@@ -71,12 +94,14 @@ func assertEqualDocumentMapping(t *testing.T, actual, expected map[int]string) {
 	for k, v := range actual {
 		actualKeys[i] = k
 		actualPaths[i] = v
+		fmt.Println(v)
 		i++
 	}
 	i = 0
 	for k, v := range expected {
 		expectedKeys[i] = k
 		expectedPaths[i] = v
+		fmt.Println(v)
 		i++
 	}
 	sort.Ints(actualKeys)

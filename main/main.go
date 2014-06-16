@@ -35,15 +35,14 @@ func main() {
 		fmt.Println("Reading the directory recursively")
 	}
 
-	// Try and get FileInfo for the passed directory string
-	fileInfo, err := os.Stat(indexDir)
-	if err != nil {
-		// TODO: improve error message
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	invertedindex.BuildIndex(fileInfo)
+	// // Try and get FileInfo for the passed directory string
+	// fileInfo, err := os.Stat(indexDir)
+	// if err != nil {
+	// 	// TODO: improve error message
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+	indexer.BuildIndex(indexDir)
 }
 
 func usage() {

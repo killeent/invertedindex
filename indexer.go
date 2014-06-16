@@ -9,19 +9,26 @@ import (
 )
 
 type Indexer struct {
-	abort, recursive, verbose bool
-	nextDocID                 int
-	documents                 map[int]string
-	index                     map[string]*list.List
+	flags     IndexerFlags
+	nextDocID int
+	documents map[int]string
+	index     map[string]*list.List
 }
 
-func (i *Indexer) BuildIndex(path string) {
+type IndexerFlags struct {
+	Abort     bool
+	Recursive bool
+	Verbose   bool
+}
+
+func (i *Indexer) BuildIndex(flags IndexerFlags, path string) {
 	fmt.Printf("building index on directory: %s\n", path)
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	i.flags = flags
 	i.index = make(map[string]*list.List)
 	i.documents = make(map[int]string)
 
@@ -34,14 +41,14 @@ func (i *Indexer) BuildIndex(path string) {
 
 func (i *Indexer) readDirectory(fileInfo os.FileInfo, path string) {
 	files, err := ioutil.ReadDir(path)
-	if err != nil && i.abort {
+	if err != nil && i.flags.Abort {
 		fmt.Println(err)
 		i.cleanup()
 		os.Exit(1)
 	}
 	for _, subFileInfo := range files {
 		if subFileInfo.IsDir() {
-			if i.recursive {
+			if i.flags.Recursive {
 				i.readDirectory(subFileInfo, filepath.Join(path, subFileInfo.Name()))
 			}
 		} else {
@@ -53,7 +60,7 @@ func (i *Indexer) readDirectory(fileInfo os.FileInfo, path string) {
 func (i *Indexer) readFile(fileInfo os.FileInfo, dir string) {
 	fmt.Printf("Reading file: %s\n", fileInfo.Name())
 	contents, err := ioutil.ReadFile(fileInfo.Name())
-	if err != nil && i.abort {
+	if err != nil && i.flags.Abort {
 		fmt.Println(err)
 		i.cleanup()
 		os.Exit(1)

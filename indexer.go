@@ -41,10 +41,14 @@ func (i *Indexer) BuildIndex(flags IndexerFlags, path string) {
 
 func (i *Indexer) readDirectory(fileInfo os.FileInfo, path string) {
 	files, err := ioutil.ReadDir(path)
-	if err != nil && i.flags.Abort {
-		fmt.Println(err)
-		i.cleanup()
-		os.Exit(1)
+	if err != nil {
+		if i.flags.Abort {
+			fmt.Println(err)
+			i.cleanup()
+			os.Exit(1)
+		} else {
+			return
+		}
 	}
 	for _, subFileInfo := range files {
 		if subFileInfo.IsDir() {
@@ -59,11 +63,15 @@ func (i *Indexer) readDirectory(fileInfo os.FileInfo, path string) {
 
 func (i *Indexer) readFile(fileInfo os.FileInfo, dir string) {
 	fmt.Printf("Reading file: %s\n", fileInfo.Name())
-	contents, err := ioutil.ReadFile(fileInfo.Name())
-	if err != nil && i.flags.Abort {
-		fmt.Println(err)
-		i.cleanup()
-		os.Exit(1)
+	contents, err := ioutil.ReadFile(filepath.Join(dir, fileInfo.Name()))
+	if err != nil {
+		if i.flags.Abort {
+			fmt.Println(err)
+			i.cleanup()
+			os.Exit(1)
+		} else {
+			return
+		}
 	}
 	terms := ExtractTerms(contents)
 	docID := i.getNextDocID()

@@ -16,17 +16,17 @@ var crawlpath string = "test_files/empty_files"
 
 // tests crawling an empty directory
 func TestCrawlEmptyDirectory(t *testing.T) {
-	indexer := setUpIndexer(t, filepath.Join(crawlpath, "empty"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "empty"))
 	actual := indexer.documents
 	expected := map[int]string{}
 	if !reflect.DeepEqual(expected, actual) {
-		t.Error("docID to document mapping invalid")
+		t.Error("improper reading of empty directory")
 	}
 }
 
 // tests crawling a single file
 func TestCrawlSingleFile(t *testing.T) {
-	indexer := setUpIndexer(t, filepath.Join(crawlpath, "single", "a.txt"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "single", "a.txt"))
 	actual := indexer.documents
 	expected := map[int]string{0: filepath.Join(crawlpath, "single", "a.txt")}
 	assertEqualDocumentMapping(t, actual, expected)
@@ -34,7 +34,7 @@ func TestCrawlSingleFile(t *testing.T) {
 
 // tests crawling a flat directory
 func TestCrawlFlatDirectory(t *testing.T) {
-	indexer := setUpIndexer(t, filepath.Join(crawlpath, "flat"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "flat"))
 	actual := indexer.documents
 	expected := map[int]string{0: filepath.Join(crawlpath, "flat", "a.txt"),
 		1: filepath.Join(crawlpath, "flat", "b.txt"),
@@ -42,23 +42,58 @@ func TestCrawlFlatDirectory(t *testing.T) {
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
-// tests crawling a nested directory without the recursive flag set
+// tests crawling a nested directory without the recursive flag set to false
 func TestCrawlNestedDirectoryNonRecursive(t *testing.T) {
-	indexer := setUpIndexer(t, filepath.Join(crawlpath, "nested"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "nested"))
 	actual := indexer.documents
 	expected := map[int]string{0: filepath.Join(crawlpath, "nested", "a.txt")}
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
-// tests crawling a nested directory with the recursive flag set
+// tests crawling a nested directory with the recursive flag set to true
 func TestCrawlNestedDirectoryRecursive(t *testing.T) {
-	// indexer := setUpIndexer(t, filepath.Join(crawlpath, "nested"))
+	indexer := setUpIndexer(t, IndexerFlags{Recursive: true}, filepath.Join(crawlpath, "nested"))
+	actual := indexer.documents
+	expected := map[int]string{0: filepath.Join(crawlpath, "nested", "a.txt"),
+		1: filepath.Join(crawlpath, "nested", "sub1", "b.txt"),
+		2: filepath.Join(crawlpath, "nested", "sub2", "sub3", "c.txt")}
+	assertEqualDocumentMapping(t, actual, expected)
 }
 
-func setUpIndexer(t *testing.T, filePath string) *Indexer {
+// tests crawling an unreadable file with the abort flag set to false
+// func TestCrawlUnreadableFileNotAbort(t *testing.T) {
+// 	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_file.txt"))
+// 	actual := indexer.documents
+// 	expected := map[int]string{}
+// 	if !reflect.DeepEqual(expected, actual) {
+// 		t.Error("improper handling of unreadable file")
+// 	}
+// }
+
+// tests crawling an unreadable file with the abourt flag set to true
+// func TestCrawlUnreadableFileAbort(t *testing.T) {
+// 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(crawlpath, "unreadable", "unreadable_file.txt"))
+// }
+
+// tests crawling an unreadable file with the abort flag set to false
+// func TestCrawlUnreadableDirectoryNotAbort(t *testing.T) {
+// 	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
+// 	actual := indexer.documents
+// 	expected := map[int]string{}
+// 	if !reflect.DeepEqual(expected, actual) {
+// 		t.Error("improper handling of unreadable file")
+// 	}
+// }
+
+// tests crawling an unreadable directory with the abourt flag set to true
+// func TestCrawlUnreadableDirectoryAbort(t *testing.T) {
+// 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
+// }
+
+func setUpIndexer(t *testing.T, flags IndexerFlags, filePath string) *Indexer {
 	indexer := new(Indexer)
 	// fileInfo := getFileInfo(t, filePath)
-	indexer.BuildIndex(filePath)
+	indexer.BuildIndex(flags, filePath)
 	return indexer
 }
 

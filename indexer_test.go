@@ -2,7 +2,7 @@ package invertedindex
 
 import (
 	"fmt"
-	// "os"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -60,15 +60,41 @@ func TestCrawlNestedDirectoryRecursive(t *testing.T) {
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
+// Because git cannot add unreadable files and directories to a repository we temporarily
+// make them unreadable for testing purposes and then change their positions back
+// after we are done.
+
+func setupUnreadableTestFile() {
+	unreadable_file := filepath.Join(crawlpath, "unreadable", "unreadable_file.txt")
+	os.Chmod(unreadable_file, 0000)
+}
+
+func teardownUnreadableTestFile() {
+	unreadable_file := filepath.Join(crawlpath, "unreadable", "unreadable_file.txt")
+	os.Chmod(unreadable_file, 0644)
+}
+
+func setupUnreadableTestDir() {
+	unreadable_dir := filepath.Join(crawlpath, "unreadable", "unreadable_dir")
+	os.Chmod(unreadable_dir, 0000)
+}
+
+func teardownUnreadableTestDir() {
+	unreadable_dir := filepath.Join(crawlpath, "unreadable", "unreadable_dir")
+	os.Chmod(unreadable_dir, 0755)
+}
+
 // tests crawling an unreadable file with the abort flag set to false
-// func TestCrawlUnreadableFileNotAbort(t *testing.T) {
-// 	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_file.txt"))
-// 	actual := indexer.documents
-// 	expected := map[int]string{}
-// 	if !reflect.DeepEqual(expected, actual) {
-// 		t.Error("improper handling of unreadable file")
-// 	}
-// }
+func TestCrawlUnreadableFileNotAbort(t *testing.T) {
+	setupUnreadableTestFile()
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_file.txt"))
+	actual := indexer.documents
+	expected := map[int]string{}
+	if !reflect.DeepEqual(expected, actual) {
+		t.Error("improper handling of unreadable file")
+	}
+	teardownUnreadableTestFile()
+}
 
 // tests crawling an unreadable file with the abourt flag set to true
 // func TestCrawlUnreadableFileAbort(t *testing.T) {
@@ -76,14 +102,16 @@ func TestCrawlNestedDirectoryRecursive(t *testing.T) {
 // }
 
 // tests crawling an unreadable file with the abort flag set to false
-// func TestCrawlUnreadableDirectoryNotAbort(t *testing.T) {
-// 	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
-// 	actual := indexer.documents
-// 	expected := map[int]string{}
-// 	if !reflect.DeepEqual(expected, actual) {
-// 		t.Error("improper handling of unreadable file")
-// 	}
-// }
+func TestCrawlUnreadableDirectoryNotAbort(t *testing.T) {
+	setupUnreadableTestDir()
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
+	actual := indexer.documents
+	expected := map[int]string{}
+	if !reflect.DeepEqual(expected, actual) {
+		t.Error("improper handling of unreadable file")
+	}
+	teardownUnreadableTestDir()
+}
 
 // tests crawling an unreadable directory with the abourt flag set to true
 // func TestCrawlUnreadableDirectoryAbort(t *testing.T) {

@@ -1,7 +1,6 @@
 package invertedindex
 
 import (
-	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,7 +11,7 @@ type Indexer struct {
 	flags     IndexerFlags
 	nextDocID int
 	documents map[int]string
-	index     map[string]*list.List
+	index     map[string][]int
 }
 
 type IndexerFlags struct {
@@ -20,6 +19,11 @@ type IndexerFlags struct {
 	Recursive bool
 	Verbose   bool
 }
+
+// eventual use for testing aborts in code
+// type AbortHandler interface {
+// 	Abort()
+// }
 
 func (i *Indexer) BuildIndex(flags IndexerFlags, path string) {
 	fmt.Printf("building index on directory: %s\n", path)
@@ -29,7 +33,7 @@ func (i *Indexer) BuildIndex(flags IndexerFlags, path string) {
 		os.Exit(1)
 	}
 	i.flags = flags
-	i.index = make(map[string]*list.List)
+	i.index = make(map[string][]int)
 	i.documents = make(map[int]string)
 
 	if fileInfo.IsDir() {
@@ -80,9 +84,9 @@ func (i *Indexer) readFile(fileInfo os.FileInfo, dir string) {
 		termStr := string(term)
 		_, ok := i.index[termStr]
 		if !ok {
-			i.index[termStr] = list.New()
+			i.index[termStr] = []int{}
 		}
-		i.index[termStr].PushBack(docID)
+		i.index[termStr] = append(i.index[termStr], docID)
 	}
 	fmt.Printf("File %s contains: %s\n", fileInfo.Name(), contents)
 }

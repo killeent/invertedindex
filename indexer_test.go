@@ -118,6 +118,30 @@ func TestCrawlUnreadableDirectoryNotAbort(t *testing.T) {
 // 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
 // }
 
+// Tests for properly building an inverted index mapping terms to docIDs
+
+func TestIndexEmptyFile(t *testing.T) {
+	// indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "single", "a.txt"))
+	// actual := indexer.index
+	// assertEqualDocumentMapping(t, actual, expected)
+}
+
+func TestIndexEmptyDirectory(t *testing.T) {
+
+}
+
+func TestIndexUniqueWordsInFile(t *testing.T) {
+
+}
+
+func TestIndexSameWordsInFile(t *testing.T) {
+
+}
+
+func TestIndexMultipleFiles(t *testing.T) {
+
+}
+
 func setUpIndexer(t *testing.T, flags IndexerFlags, filePath string) *Indexer {
 	indexer := new(Indexer)
 	// fileInfo := getFileInfo(t, filePath)
@@ -176,5 +200,36 @@ func assertEqualDocumentMapping(t *testing.T, actual, expected map[int]string) {
 	sort.Strings(expectedPaths)
 	if !reflect.DeepEqual(actualPaths, expectedPaths) {
 		t.Error("Invalid paths indexed")
+	}
+}
+
+// assertCorrectIndexMapping tests that an index is properly constructed; that is it
+// stores a proper mapping of terms to docIDs; We nay not know exactly what docID is
+// assigned to a document; so in order to verify that things are equal we rebuild a
+// mapping from docID to terms and then check that the individual term lists match
+// a slice of expected term slices
+func assertCorrectIndexMapping(t *testing.T, actual map[string][]int, expected [][]string) {
+	rebuilt := make(map[int][]string)
+	for term, docIDs := range actual {
+		for docID := range docIDs {
+			_, ok := rebuilt[docID]
+			if !ok {
+				rebuilt[docID] = []string{}
+			}
+			rebuilt[docID] = append(rebuilt[docID], term)
+		}
+	}
+	if len(rebuilt) != len(expected) {
+		t.Errorf("Expected number of documents indexed: %d, actual: %d", len(expected),
+			len(rebuilt))
+	}
+	for _, terms := range rebuilt {
+		for i := 0; i < len(expected); i++ {
+			if reflect.DeepEqual(terms, expected[i]) {
+				expected = append(expected[:i], expected[i+1:]...)
+				break
+			}
+		}
+		t.Error("Some document improperly indexed")
 	}
 }

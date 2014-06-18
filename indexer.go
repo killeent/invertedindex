@@ -86,9 +86,18 @@ func (i *Indexer) readFile(fileInfo os.FileInfo, dir string) {
 		if !ok {
 			i.index[termStr] = []int{}
 		}
-		i.index[termStr] = append(i.index[termStr], docID)
+		found := false
+		for _, id := range i.index[termStr] {
+			if id == docID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			i.index[termStr] = append(i.index[termStr], docID)
+		}
 	}
-	fmt.Printf("File %s contains: %s\n", fileInfo.Name(), contents)
+	// fmt.Printf("File %s contains: %s\n", fileInfo.Name(), contents)
 }
 
 func (i *Indexer) getNextDocID() int {

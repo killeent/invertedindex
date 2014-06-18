@@ -171,14 +171,21 @@ func TestIndexEmptyDirectory(t *testing.T) {
 	teardownEmptyDirectory(t, giPath, gitignore)
 }
 
-// func TestIndexUniqueWordsInFile(t *testing.T) {
-// 	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(indexpath, "unique.txt"))
-// 	actual := indexer.index
-// 	expected := [][]string{[]string{"alpha", "beta", "gamma"}}
-// 	assertCorrectIndexMapping(t, actual, expected)
-// }
+func TestIndexUniqueWordsInFile(t *testing.T) {
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(indexpath, "unique.txt"))
+	actual := indexer.index
+	expected := [][]string{[]string{"alpha", "beta", "gamma"}}
+	assertCorrectIndexMapping(t, actual, expected)
+}
 
 func TestIndexSameWordsInFile(t *testing.T) {
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(indexpath, "duplicate.txt"))
+	actual := indexer.index
+	expected := [][]string{[]string{"alpha"}}
+	assertCorrectIndexMapping(t, actual, expected)
+}
+
+func TestIndexSameAndUniqueWords(t *testing.T) {
 
 }
 
@@ -268,12 +275,16 @@ func assertCorrectIndexMapping(t *testing.T, actual map[string][]int, expected [
 			len(rebuilt))
 	}
 	for _, terms := range rebuilt {
+		found := false
 		for i := 0; i < len(expected); i++ {
 			if reflect.DeepEqual(terms, expected[i]) {
 				expected = append(expected[:i], expected[i+1:]...)
+				found = true
 				break
 			}
 		}
-		t.Error("Some document improperly indexed")
+		if !found {
+			t.Error("Some document improperly indexed")
+		}
 	}
 }

@@ -1,0 +1,8 @@
+# ignore everything in this directory
+*
+# Except this file
+!.gitignore
+
+# source: https://stackoverflow.com/questions/115983/how-do-i-add-an-empty-directory-to-a-git-repository
+
+# see indexer_test.go to understand why this file is necessary and how it is used

@@ -2,6 +2,7 @@ package invertedindex
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,51 +13,82 @@ import (
 // Tests for crawling a directory and properly mapping docIDs
 // to paths and handling errors along the way
 
-var crawlpath string = "test_files/empty_files"
+var emptypath string = "test_files/empty_files"
 
 // tests crawling an empty directory
 func TestCrawlEmptyDirectory(t *testing.T) {
-	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "empty"))
+	giPath := filepath.Join(emptypath, "empty", ".gitignore")
+	gitignore := setupEmptyDirectory(t, giPath)
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "empty"))
 	actual := indexer.documents
 	expected := map[int]string{}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Error("improper reading of empty directory")
 	}
+	teardownEmptyDirectory(t, giPath, gitignore)
+}
+
+// git only supports files to be listed in the staging area, not directories, so we
+// can't add an empty directory to our git repository. Thus we need to remove our placeholder
+// .gitignore file from the empty directory in order to test crawling it; and then put it back
+// after we are done
+
+// TODO: improve error messages
+
+// setupEmptyDirectory takes a path to a .gitignore file, reads that file into
+// memory and then deletes it. this function assumes that the passed string is the directory
+// containing a single .gitignore file; the byte slice containing the file contents are returned
+// to the caller so that it can pass them to the teardown method to write them back to file
+func setupEmptyDirectory(t *testing.T, path string) []byte {
+	gitignore, err := ioutil.ReadFile(path)
+	if err != nil {
+		t.Error(err)
+	}
+	os.Remove(path)
+	return gitignore
+}
+
+// writes the byte slice of the .gitignore file to the passed path
+func teardownEmptyDirectory(t *testing.T, path string, contents []byte) {
+	err := ioutil.WriteFile(path, contents, 0644)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 // tests crawling a single file
 func TestCrawlSingleFile(t *testing.T) {
-	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "single", "a.txt"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "single", "a.txt"))
 	actual := indexer.documents
-	expected := map[int]string{0: filepath.Join(crawlpath, "single", "a.txt")}
+	expected := map[int]string{0: filepath.Join(emptypath, "single", "a.txt")}
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
 // tests crawling a flat directory
 func TestCrawlFlatDirectory(t *testing.T) {
-	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "flat"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "flat"))
 	actual := indexer.documents
-	expected := map[int]string{0: filepath.Join(crawlpath, "flat", "a.txt"),
-		1: filepath.Join(crawlpath, "flat", "b.txt"),
-		2: filepath.Join(crawlpath, "flat", "c.txt")}
+	expected := map[int]string{0: filepath.Join(emptypath, "flat", "a.txt"),
+		1: filepath.Join(emptypath, "flat", "b.txt"),
+		2: filepath.Join(emptypath, "flat", "c.txt")}
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
 // tests crawling a nested directory without the recursive flag set to false
 func TestCrawlNestedDirectoryNonRecursive(t *testing.T) {
-	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "nested"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "nested"))
 	actual := indexer.documents
-	expected := map[int]string{0: filepath.Join(crawlpath, "nested", "a.txt")}
+	expected := map[int]string{0: filepath.Join(emptypath, "nested", "a.txt")}
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
 // tests crawling a nested directory with the recursive flag set to true
 func TestCrawlNestedDirectoryRecursive(t *testing.T) {
-	indexer := setUpIndexer(t, IndexerFlags{Recursive: true}, filepath.Join(crawlpath, "nested"))
+	indexer := setUpIndexer(t, IndexerFlags{Recursive: true}, filepath.Join(emptypath, "nested"))
 	actual := indexer.documents
-	expected := map[int]string{0: filepath.Join(crawlpath, "nested", "a.txt"),
-		1: filepath.Join(crawlpath, "nested", "sub1", "b.txt"),
-		2: filepath.Join(crawlpath, "nested", "sub2", "sub3", "c.txt")}
+	expected := map[int]string{0: filepath.Join(emptypath, "nested", "a.txt"),
+		1: filepath.Join(emptypath, "nested", "sub1", "b.txt"),
+		2: filepath.Join(emptypath, "nested", "sub2", "sub3", "c.txt")}
 	assertEqualDocumentMapping(t, actual, expected)
 }
 
@@ -65,29 +97,29 @@ func TestCrawlNestedDirectoryRecursive(t *testing.T) {
 // after we are done.
 
 func setupUnreadableTestFile() {
-	unreadable_file := filepath.Join(crawlpath, "unreadable", "unreadable_file.txt")
+	unreadable_file := filepath.Join(emptypath, "unreadable", "unreadable_file.txt")
 	os.Chmod(unreadable_file, 0000)
 }
 
 func teardownUnreadableTestFile() {
-	unreadable_file := filepath.Join(crawlpath, "unreadable", "unreadable_file.txt")
+	unreadable_file := filepath.Join(emptypath, "unreadable", "unreadable_file.txt")
 	os.Chmod(unreadable_file, 0644)
 }
 
 func setupUnreadableTestDir() {
-	unreadable_dir := filepath.Join(crawlpath, "unreadable", "unreadable_dir")
+	unreadable_dir := filepath.Join(emptypath, "unreadable", "unreadable_dir")
 	os.Chmod(unreadable_dir, 0000)
 }
 
 func teardownUnreadableTestDir() {
-	unreadable_dir := filepath.Join(crawlpath, "unreadable", "unreadable_dir")
+	unreadable_dir := filepath.Join(emptypath, "unreadable", "unreadable_dir")
 	os.Chmod(unreadable_dir, 0755)
 }
 
 // tests crawling an unreadable file with the abort flag set to false
 func TestCrawlUnreadableFileNotAbort(t *testing.T) {
 	setupUnreadableTestFile()
-	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_file.txt"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "unreadable", "unreadable_file.txt"))
 	actual := indexer.documents
 	expected := map[int]string{}
 	if !reflect.DeepEqual(expected, actual) {
@@ -98,13 +130,13 @@ func TestCrawlUnreadableFileNotAbort(t *testing.T) {
 
 // tests crawling an unreadable file with the abourt flag set to true
 // func TestCrawlUnreadableFileAbort(t *testing.T) {
-// 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(crawlpath, "unreadable", "unreadable_file.txt"))
+// 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(emptypath, "unreadable", "unreadable_file.txt"))
 // }
 
 // tests crawling an unreadable file with the abort flag set to false
 func TestCrawlUnreadableDirectoryNotAbort(t *testing.T) {
 	setupUnreadableTestDir()
-	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "unreadable", "unreadable_dir"))
 	actual := indexer.documents
 	expected := map[int]string{}
 	if !reflect.DeepEqual(expected, actual) {
@@ -115,24 +147,36 @@ func TestCrawlUnreadableDirectoryNotAbort(t *testing.T) {
 
 // tests crawling an unreadable directory with the abourt flag set to true
 // func TestCrawlUnreadableDirectoryAbort(t *testing.T) {
-// 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(crawlpath, "unreadable", "unreadable_dir"))
+// 	indexer := setUpIndexer(t, IndexerFlags{Abort: true}, filepath.Join(emptypath, "unreadable", "unreadable_dir"))
 // }
 
 // Tests for properly building an inverted index mapping terms to docIDs
 
+var indexpath string = "test_files/index_files"
+
 func TestIndexEmptyFile(t *testing.T) {
-	// indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(crawlpath, "single", "a.txt"))
-	// actual := indexer.index
-	// assertEqualDocumentMapping(t, actual, expected)
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "single", "a.txt"))
+	actual := indexer.index
+	expected := [][]string{}
+	assertCorrectIndexMapping(t, actual, expected)
 }
 
 func TestIndexEmptyDirectory(t *testing.T) {
-
+	giPath := filepath.Join(emptypath, "empty", ".gitignore")
+	gitignore := setupEmptyDirectory(t, giPath)
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(emptypath, "empty"))
+	actual := indexer.index
+	expected := [][]string{}
+	assertCorrectIndexMapping(t, actual, expected)
+	teardownEmptyDirectory(t, giPath, gitignore)
 }
 
-func TestIndexUniqueWordsInFile(t *testing.T) {
-
-}
+// func TestIndexUniqueWordsInFile(t *testing.T) {
+// 	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(indexpath, "unique.txt"))
+// 	actual := indexer.index
+// 	expected := [][]string{[]string{"alpha", "beta", "gamma"}}
+// 	assertCorrectIndexMapping(t, actual, expected)
+// }
 
 func TestIndexSameWordsInFile(t *testing.T) {
 

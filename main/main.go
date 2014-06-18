@@ -43,8 +43,8 @@ func main() {
 	// 	os.Exit(1)
 	// }
 	indexer := new(Indexer)
-	flags := IndexerFlags{abort, recursive, false}
-	indexer.BuildIndex(indexDir)
+	flags := IndexerFlags{Abort: abort, Recursive: recursive}
+	indexer.BuildIndex(flags, indexDir)
 }
 
 func usage() {

@@ -94,6 +94,7 @@ func (i *Indexer) readFile(fileInfo os.FileInfo, dir string) {
 			}
 		}
 		if !found {
+			// fmt.Printf("adding term: %s id: %d pair to index\n", termStr, docID)
 			i.index[termStr] = append(i.index[termStr], docID)
 		}
 	}

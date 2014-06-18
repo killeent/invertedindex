@@ -186,11 +186,20 @@ func TestIndexSameWordsInFile(t *testing.T) {
 }
 
 func TestIndexSameAndUniqueWords(t *testing.T) {
-
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(indexpath, "mixed.txt"))
+	actual := indexer.index
+	expected := [][]string{[]string{"alpha", "beta", "gamma", "delta"}}
+	assertCorrectIndexMapping(t, actual, expected)
 }
 
 func TestIndexMultipleFiles(t *testing.T) {
-
+	indexer := setUpIndexer(t, IndexerFlags{}, filepath.Join(indexpath, "multi"))
+	actual := indexer.index
+	expected := [][]string{
+		[]string{"alpha", "beta"},
+		[]string{"beta", "gamma"},
+		[]string{"beta", "alpha", "gamma", "epsilon"}}
+	assertCorrectIndexMapping(t, actual, expected)
 }
 
 func setUpIndexer(t *testing.T, flags IndexerFlags, filePath string) *Indexer {
@@ -262,7 +271,7 @@ func assertEqualDocumentMapping(t *testing.T, actual, expected map[int]string) {
 func assertCorrectIndexMapping(t *testing.T, actual map[string][]int, expected [][]string) {
 	rebuilt := make(map[int][]string)
 	for term, docIDs := range actual {
-		for docID := range docIDs {
+		for _, docID := range docIDs {
 			_, ok := rebuilt[docID]
 			if !ok {
 				rebuilt[docID] = []string{}
@@ -274,7 +283,13 @@ func assertCorrectIndexMapping(t *testing.T, actual map[string][]int, expected [
 		t.Errorf("Expected number of documents indexed: %d, actual: %d", len(expected),
 			len(rebuilt))
 	}
+	// sort terms of expected
+	for _, terms := range expected {
+		sort.Strings(terms)
+	}
 	for _, terms := range rebuilt {
+		// sort terms of rebuilt
+		sort.Strings(terms)
 		found := false
 		for i := 0; i < len(expected); i++ {
 			if reflect.DeepEqual(terms, expected[i]) {

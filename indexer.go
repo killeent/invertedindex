@@ -2,16 +2,16 @@ package invertedindex
 
 import (
 	"fmt"
+	"github.com/killeent/goalgo"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
 type Indexer struct {
-	flags     IndexerFlags
-	nextDocID int
-	documents map[int]string
-	index     map[string][]int
+	flags      IndexerFlags
+	index      InvertedIndex
+	blockQueue goalgo.Queue
 }
 
 type IndexerFlags struct {
@@ -24,6 +24,30 @@ type IndexerFlags struct {
 // type AbortHandler interface {
 // 	Abort()
 // }
+
+// BuildIndex builds an inverted index of the documents contained in path
+// according to the options specified by flags. BuildIndex implements a
+// Block Sort-Based Indexing (BSBI) algorithm.
+//
+// In a BSBI algorithm, the documents are crawled in blocks so that the
+// associated index created can be stored in memory. Once memory space
+// is depleted, to the posting list associated with the block is written
+// to disk to clear space. Blocks are processed in this order until all
+// the documents are processed. These blocks are then merged into a single
+// index encompassing the document collection.
+//
+// See: http://nlp.stanford.edu/IR-book/html/
+// htmledition/blocked-sort-based-indexing-1.html for details
+func (i *Indexer) BuildIndex(flags IndexerFlags, path string) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		fmt.Println(1)
+		os.Exit(1)
+	}
+	i.flags = flags
+	i.index = make(InvertedIndex)
+	i.blockQueue = make(goalgo.Queue)
+}
 
 func (i *Indexer) BuildIndex(flags IndexerFlags, path string) {
 	fmt.Printf("building index on directory: %s\n", path)

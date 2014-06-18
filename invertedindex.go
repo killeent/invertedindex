@@ -1,5 +1,6 @@
 package invertedindex
 
+// TODO: add high-level description
 type InvertedIndex struct {
 	// postingDict maps termIDs to the pair (frequency, offset). Frequency is
 	// the number of times a word occurs in the index's document collection.
@@ -12,6 +13,16 @@ type InvertedIndex struct {
 
 	// docDict maps document paths to docIDs.
 	docDict map[string]int
+
+	// termCount and docCount stores the number of unique terms and documents
+	termCount, docCount counter
+}
+
+// counter stores an integer representing the count of something. This is
+// trivial for now but will become more important if this count needs to
+// be synchronized.
+type counter struct {
+	count int
 }
 
 // AddDocuments takes a path to a file and adds its contents to the index.
@@ -46,9 +57,9 @@ func (i *InvertedIndex) RebuildFromFile(path string) error {
 
 }
 
-// Merge combines two index files specified by i1 and i2 and writes them
-// to a combined index file in location dest. Returns an error if the
-// merge cannot be performed.
-func Merge(i1, i2, dest string) error {
+// MergePostings combines two posting lists files specified by i1 and i2 and
+// writes them to a combined posting list file in location dest. Returns an
+// error if the merge cannot be performed.
+func MergePostings(i1, i2, dest string) error {
 
 }
